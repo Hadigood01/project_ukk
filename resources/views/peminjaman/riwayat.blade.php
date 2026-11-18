@@ -159,7 +159,7 @@
             Kembali ke Dashboard
         </a>
 
-        <a href="{{ route('peminjaman.ajukan') }}" class="btn btn-primary">
+        <a href="{{ route('peminjaman.create') }}" class="btn btn-primary">
             Ajukan Peminjaman
         </a>
     </div>

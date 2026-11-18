@@ -55,12 +55,15 @@ Route::middleware('auth')
     ->name('notifikasi.')
     ->group(function () {
 
+        // Menampilkan notifikasi
         Route::get('/', [NotifikasiController::class, 'index'])
             ->name('index');
 
+        // Menandai semua notifikasi sudah dibaca
         Route::post('/baca-semua', [NotifikasiController::class, 'bacaSemua'])
             ->name('bacaSemua');
 
+        // Menandai satu notifikasi sudah dibaca
         Route::post('/{id}/baca', [NotifikasiController::class, 'baca'])
             ->name('baca');
     });
@@ -75,7 +78,7 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
 
-        // Dashboard
+        // Dashboard admin
         Route::get('/dashboard', [DashboardController::class, 'admin'])
             ->name('dashboard');
 
@@ -85,10 +88,13 @@ Route::middleware(['auth', 'role:admin'])
         // Manajemen kategori
         Route::resource('kategori', KategoriController::class);
 
-        // Manajemen alat
+        // Manajemen alat khusus admin
         Route::resource('alat', AlatController::class);
 
-        // Manajemen peminjaman
+        // ========================================
+        // MANAJEMEN PEMINJAMAN
+        // ========================================
+
         Route::get('/peminjaman', [PeminjamanController::class, 'index'])
             ->name('peminjaman.index');
 
@@ -101,14 +107,20 @@ Route::middleware(['auth', 'role:admin'])
         Route::delete('/peminjaman/{id}', [PeminjamanController::class, 'destroy'])
             ->name('peminjaman.destroy');
 
-        // Riwayat pengembalian
+        // ========================================
+        // RIWAYAT PENGEMBALIAN
+        // ========================================
+
         Route::get('/pengembalian', [PengembalianController::class, 'index'])
             ->name('pengembalian.index');
 
         Route::get('/pengembalian/{id}', [PengembalianController::class, 'show'])
             ->name('pengembalian.show');
 
-        // Log aktivitas
+        // ========================================
+        // LOG AKTIVITAS
+        // ========================================
+
         Route::get('/log', [LogAktivitasController::class, 'index'])
             ->name('log.index');
     });
@@ -123,9 +135,13 @@ Route::middleware(['auth', 'role:petugas'])
     ->name('petugas.')
     ->group(function () {
 
-        // Dashboard
+        // Dashboard petugas
         Route::get('/dashboard', [DashboardController::class, 'petugas'])
             ->name('dashboard');
+
+        // ========================================
+        // PEMINJAMAN
+        // ========================================
 
         // Daftar pengajuan peminjaman
         Route::get('/peminjaman', [PeminjamanController::class, 'persetujuan'])
@@ -139,6 +155,10 @@ Route::middleware(['auth', 'role:petugas'])
         Route::post('/peminjaman/{id}/tolak', [PeminjamanController::class, 'tolak'])
             ->name('peminjaman.tolak');
 
+        // ========================================
+        // PENGEMBALIAN
+        // ========================================
+
         // Daftar alat yang harus dikembalikan
         Route::get('/pengembalian', [PengembalianController::class, 'monitor'])
             ->name('pengembalian.index');
@@ -146,6 +166,10 @@ Route::middleware(['auth', 'role:petugas'])
         // Memproses pengembalian
         Route::post('/pengembalian/{id}', [PengembalianController::class, 'store'])
             ->name('pengembalian.store');
+
+        // ========================================
+        // LAPORAN
+        // ========================================
 
         // Laporan peminjaman
         Route::get('/laporan', [LaporanController::class, 'index'])
@@ -155,7 +179,6 @@ Route::middleware(['auth', 'role:petugas'])
         Route::get('/laporan/pengembalian', [LaporanController::class, 'pengembalian'])
             ->name('laporan.pengembalian');
     });
-
 
 
 // ========================================
@@ -171,9 +194,18 @@ Route::middleware(['auth', 'role:peminjaman'])
         Route::get('/dashboard', [DashboardController::class, 'peminjaman'])
             ->name('dashboard');
 
-        // Daftar alat
-        Route::get('/alat', [AlatController::class, 'index'])
+        // ========================================
+        // DATA ALAT
+        // ========================================
+
+        // Daftar alat khusus peminjam
+        // Tidak menggunakan index() karena index() adalah halaman admin
+        Route::get('/alat', [AlatController::class, 'daftar'])
             ->name('alat.index');
+
+        // ========================================
+        // PEMINJAMAN
+        // ========================================
 
         // Form pengajuan peminjaman
         Route::get('/peminjaman', [PeminjamanController::class, 'create'])
@@ -186,6 +218,10 @@ Route::middleware(['auth', 'role:peminjaman'])
         // Riwayat peminjaman
         Route::get('/riwayat', [PeminjamanController::class, 'riwayat'])
             ->name('riwayat');
+
+        // ========================================
+        // PENGEMBALIAN
+        // ========================================
 
         // Daftar pengembalian milik peminjam
         Route::get('/pengembalian', [PengembalianController::class, 'pengembalianSaya'])
@@ -203,4 +239,3 @@ Route::middleware(['auth', 'role:peminjaman'])
             'ajukanPengembalian'
         ])->name('pengembalian.ajukan');
     });
-

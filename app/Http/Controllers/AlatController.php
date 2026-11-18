@@ -8,7 +8,12 @@ use Illuminate\Http\Request;
 
 class AlatController extends Controller
 {
-    // Menampilkan seluruh data alat untuk admin
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN: MENAMPILKAN DATA ALAT
+    |--------------------------------------------------------------------------
+    */
+
     public function index()
     {
         $alat = Alat::with('kategori')
@@ -18,7 +23,12 @@ class AlatController extends Controller
         return view('admin.alat.index', compact('alat'));
     }
 
-    // Menampilkan halaman tambah alat
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN: FORM TAMBAH ALAT
+    |--------------------------------------------------------------------------
+    */
+
     public function create()
     {
         $kategori = Kategori::orderBy('nama_kategori')->get();
@@ -26,7 +36,12 @@ class AlatController extends Controller
         return view('admin.alat.create', compact('kategori'));
     }
 
-    // Menyimpan data alat baru
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN: MENYIMPAN DATA ALAT
+    |--------------------------------------------------------------------------
+    */
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -44,7 +59,12 @@ class AlatController extends Controller
             ->with('success', 'Data alat berhasil ditambahkan.');
     }
 
-    // Menampilkan halaman edit alat
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN: FORM EDIT ALAT
+    |--------------------------------------------------------------------------
+    */
+
     public function edit($id)
     {
         $alat = Alat::findOrFail($id);
@@ -54,7 +74,12 @@ class AlatController extends Controller
         return view('admin.alat.edit', compact('alat', 'kategori'));
     }
 
-    // Memperbarui data alat
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN: MEMPERBARUI DATA ALAT
+    |--------------------------------------------------------------------------
+    */
+
     public function update(Request $request, $id)
     {
         $data = $request->validate([
@@ -74,12 +99,17 @@ class AlatController extends Controller
             ->with('success', 'Data alat berhasil diperbarui.');
     }
 
-    // Menghapus data alat
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN: MENGHAPUS DATA ALAT
+    |--------------------------------------------------------------------------
+    */
+
     public function destroy($id)
     {
         $alat = Alat::findOrFail($id);
 
-        // Periksa apakah alat digunakan dalam transaksi
+        // Periksa apakah alat sudah digunakan dalam transaksi
         if ($alat->detailPeminjaman()->exists()) {
             return back()->with(
                 'error',
@@ -94,10 +124,16 @@ class AlatController extends Controller
             ->with('success', 'Data alat berhasil dihapus.');
     }
 
-    // Menampilkan daftar alat untuk peminjam
+    /*
+    |--------------------------------------------------------------------------
+    | PEMINJAM: MENAMPILKAN DAFTAR ALAT
+    |--------------------------------------------------------------------------
+    */
+
     public function daftar()
     {
         $alat = Alat::with('kategori')
+            ->where('stok', '>', 0)
             ->orderBy('nama_alat')
             ->paginate(12);
 

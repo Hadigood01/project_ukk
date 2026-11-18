@@ -15,276 +15,251 @@
 
     <style>
         body {
-            background: #f4f6fa;
-            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
         }
 
-        .navbar {
-            background: #243b64;
+        .navbar-custom {
+            background-color: #172b4d;
         }
 
-        .welcome {
-            background: linear-gradient(120deg, #243b64, #3974bd);
-            color: white;
-            border-radius: 14px;
-            padding: 25px;
-        }
-
-        .stat-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 25px;
+        .navbar-brand {
+            font-weight: bold;
+            color: white !important;
         }
 
         .menu-card {
             border: none;
-            border-radius: 13px;
-        }
-
-        .menu-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 15px;
-            color: #344054;
-            text-decoration: none;
-            border-radius: 9px;
-            transition: .2s;
+            border-radius: 12px;
+            transition: 0.2s;
             height: 100%;
         }
 
-        .menu-link:hover {
-            background: #edf3fc;
-            color: #2463a8;
+        .menu-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.12);
         }
 
-        .menu-link i {
-            font-size: 21px;
-            width: 27px;
-            flex-shrink: 0;
-        }
-
-        .menu-link small {
-            display: block;
-            color: #7b8494;
-            margin-top: 3px;
+        .menu-icon {
+            font-size: 35px;
+            margin-bottom: 12px;
         }
 
         .notification-btn {
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: relative;
         }
     </style>
 </head>
 
 <body>
 
-<nav class="navbar navbar-dark px-3 px-md-4 py-3">
-    <div class="container-fluid">
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container">
 
-        <span class="navbar-brand fw-semibold">
-            <i class="bi bi-pc-display me-2"></i>
-            Peminjaman Alat Komputer
-        </span>
-
-        <div class="d-flex align-items-center gap-3">
-
-            <!-- NOTIFIKASI -->
-            <a href="{{ route('notifikasi.index') }}"
-               class="btn btn-light btn-sm position-relative notification-btn">
-
-                <i class="bi bi-bell fs-5"></i>
-
-                @php
-                    $jumlahNotifikasi = auth()->user()
-                        ->unreadNotifications()
-                        ->count();
-                @endphp
-
-                @if($jumlahNotifikasi > 0)
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        {{ $jumlahNotifikasi }}
-                    </span>
-                @endif
-
+            <a class="navbar-brand" href="{{ route('peminjaman.dashboard') }}">
+                <i class="bi bi-box-seam"></i>
+                Sistem Peminjaman Alat
             </a>
 
-            <!-- LOGOUT -->
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
+            <div class="d-flex align-items-center gap-3">
 
-                <button type="submit" class="btn btn-danger btn-sm">
-                    <i class="bi bi-box-arrow-right me-1"></i>
-                    Logout
-                </button>
-            </form>
+                <span class="text-white">
+                    Halo, {{ auth()->user()->nama_user }}
+                </span>
 
+                <!-- TOMBOL NOTIFIKASI -->
+                <a href="{{ route('notifikasi.index') }}"
+                   class="btn btn-light btn-sm notification-btn"
+                   title="Notifikasi">
+
+                    <i class="bi bi-bell fs-5"></i>
+
+                    @php
+                        $jumlahNotifikasi = auth()->user()
+                            ->unreadNotifications()
+                            ->count();
+                    @endphp
+
+                    @if($jumlahNotifikasi > 0)
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ $jumlahNotifikasi }}
+                        </span>
+                    @endif
+
+                </a>
+
+                <!-- LOGOUT -->
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Logout
+                    </button>
+                </form>
+
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<div class="container py-4">
+    <!-- KONTEN -->
+    <div class="container py-4">
 
-    <!-- SAMBUTAN -->
-    <div class="welcome mb-4">
+        <!-- JUDUL -->
+        <div class="mb-4">
+            <h3 class="fw-bold">Dashboard Peminjam</h3>
 
-        <h3 class="fw-bold">Dashboard Peminjam</h3>
+            <p class="text-muted">
+                Selamat datang di Sistem Informasi Peminjaman Alat.
+                Silakan pilih menu yang tersedia.
+            </p>
+        </div>
 
-        <p class="mb-0">
-            Selamat datang, {{ auth()->user()->nama_user }}.
-            Silakan pilih menu untuk melihat dan mengajukan peminjaman alat.
-        </p>
+        <!-- INFORMASI -->
+        <div class="alert alert-primary">
+            <i class="bi bi-info-circle"></i>
+            Gunakan menu di bawah untuk melihat alat, mengajukan
+            peminjaman, dan memantau transaksi Anda.
+        </div>
 
-    </div>
+        <!-- MENU -->
+        <div class="row g-4">
 
-    <!-- RINGKASAN -->
-    <div class="row g-3">
+            <!-- DATA ALAT -->
+            <div class="col-md-4">
+                <div class="card menu-card shadow-sm">
+                    <div class="card-body text-center p-4">
 
-        <div class="col-12 col-md-5 col-lg-4">
+                        <div class="menu-icon text-primary">
+                            <i class="bi bi-tools"></i>
+                        </div>
 
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
+                        <h5 class="fw-bold">Data Alat</h5>
 
-                    <div class="stat-icon bg-primary-subtle text-primary mb-3">
-                        <i class="bi bi-clipboard-check"></i>
+                        <p class="text-muted">
+                            Lihat daftar alat yang tersedia untuk dipinjam.
+                        </p>
+
+                        <a href="{{ route('peminjaman.alat.index') }}"
+                           class="btn btn-primary w-100">
+                            Lihat Data Alat
+                        </a>
+
                     </div>
+                </div>
+            </div>
 
-                    <p class="text-muted mb-1">
-                        Total Pengajuan Saya
-                    </p>
+            <!-- AJUKAN PEMINJAMAN -->
+            <div class="col-md-4">
+                <div class="card menu-card shadow-sm">
+                    <div class="card-body text-center p-4">
 
-                    <h2 class="fw-bold mb-0">
-                        {{ $jumlah }}
-                    </h2>
+                        <div class="menu-icon text-success">
+                            <i class="bi bi-send-check"></i>
+                        </div>
 
-                    <small class="text-muted">
-                        Jumlah seluruh pengajuan peminjaman
-                    </small>
+                        <h5 class="fw-bold">Ajukan Peminjaman</h5>
 
+                        <p class="text-muted">
+                            Ajukan peminjaman alat sesuai kebutuhan.
+                        </p>
+
+                        <a href="{{ route('peminjaman.create') }}"
+                           class="btn btn-success w-100">
+                            Ajukan Sekarang
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIWAYAT PEMINJAMAN -->
+            <div class="col-md-4">
+                <div class="card menu-card shadow-sm">
+                    <div class="card-body text-center p-4">
+
+                        <div class="menu-icon text-info">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+
+                        <h5 class="fw-bold">Riwayat Peminjaman</h5>
+
+                        <p class="text-muted">
+                            Lihat status dan riwayat transaksi peminjaman.
+                        </p>
+
+                        <a href="{{ route('peminjaman.riwayat') }}"
+                           class="btn btn-info text-white w-100">
+                            Lihat Riwayat
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- PENGAJUAN PENGEMBALIAN -->
+            <div class="col-md-4">
+                <div class="card menu-card shadow-sm">
+                    <div class="card-body text-center p-4">
+
+                        <div class="menu-icon text-warning">
+                            <i class="bi bi-arrow-return-left"></i>
+                        </div>
+
+                        <h5 class="fw-bold">Pengajuan Pengembalian</h5>
+
+                        <p class="text-muted">
+                            Lihat peminjaman dan ajukan pengembalian alat.
+                        </p>
+
+                        <a href="{{ route('peminjaman.pengembalian.index') }}"
+                           class="btn btn-warning w-100">
+                            Lihat Pengembalian
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOTIFIKASI -->
+            <div class="col-md-4">
+                <div class="card menu-card shadow-sm">
+                    <div class="card-body text-center p-4">
+
+                        <div class="menu-icon text-danger">
+                            <i class="bi bi-bell"></i>
+                        </div>
+
+                        <h5 class="fw-bold">Notifikasi</h5>
+
+                        <p class="text-muted">
+                            Lihat informasi terbaru mengenai transaksi Anda.
+                        </p>
+
+                        <a href="{{ route('notifikasi.index') }}"
+                           class="btn btn-danger w-100">
+                            Buka Notifikasi
+                            @if($jumlahNotifikasi > 0)
+                                ({{ $jumlahNotifikasi }})
+                            @endif
+                        </a>
+
+                    </div>
                 </div>
             </div>
 
         </div>
 
-    </div>
-
-    <!-- MENU PEMINJAM -->
-    <div class="card menu-card shadow-sm mt-4">
-
-        <div class="card-body p-3 p-md-4">
-
-            <h5 class="fw-bold mb-3">
-                <i class="bi bi-grid me-2"></i>
-                Menu Peminjam
-            </h5>
-
-            <div class="row g-2">
-
-                <!-- DAFTAR ALAT -->
-                <div class="col-md-6 col-lg-4">
-
-                    <a href="{{ route('peminjaman.alat.index') }}"
-                       class="menu-link">
-
-                        <i class="bi bi-pc-display text-primary"></i>
-
-                        <span>
-                            <strong>Daftar Alat</strong>
-                            <small>
-                                Melihat alat yang tersedia untuk dipinjam
-                            </small>
-                        </span>
-
-                        <i class="bi bi-chevron-right ms-auto"></i>
-
-                    </a>
-
-                </div>
-
-                <!-- AJUKAN PEMINJAMAN -->
-                <div class="col-md-6 col-lg-4">
-
-                    <a href="{{ route('peminjaman.create') }}"
-                       class="menu-link">
-
-                        <i class="bi bi-plus-circle text-success"></i>
-
-                        <span>
-                            <strong>Ajukan Peminjaman</strong>
-                            <small>
-                                Mengirim pengajuan peminjaman alat
-                            </small>
-                        </span>
-
-                        <i class="bi bi-chevron-right ms-auto"></i>
-
-                    </a>
-
-                </div>
-
-                <!-- RIWAYAT PEMINJAMAN -->
-                <div class="col-md-6 col-lg-4">
-
-                    <a href="{{ route('peminjaman.riwayat') }}"
-                       class="menu-link">
-
-                        <i class="bi bi-clock-history text-warning"></i>
-
-                        <span>
-                            <strong>Riwayat Peminjaman</strong>
-                            <small>
-                                Melihat status dan riwayat pengajuan
-                            </small>
-                        </span>
-
-                        <i class="bi bi-chevron-right ms-auto"></i>
-
-                    </a>
-
-                </div>
-
-                <!-- PENGEMBALIAN -->
-                <div class="col-md-6 col-lg-4">
-
-                    <a href="{{ route('peminjaman.pengembalian.index') }}"
-                       class="menu-link">
-
-                        <i class="bi bi-arrow-return-left text-danger"></i>
-
-                        <span>
-                            <strong>Pengembalian Alat</strong>
-                            <small>
-                                Melihat alat yang harus dikembalikan
-                            </small>
-                        </span>
-
-                        <i class="bi bi-chevron-right ms-auto"></i>
-
-                    </a>
-
-                </div>
-
-            </div>
+        <!-- FOOTER -->
+        <div class="text-center text-muted mt-5">
+            <small>
+                &copy; {{ date('Y') }} Sistem Informasi Peminjaman Alat
+            </small>
         </div>
+
     </div>
 
-    <!-- FOOTER -->
-    <p class="text-center text-muted small mt-4">
-        Sistem Informasi Peminjaman Alat Komputer
-    </p>
-
-    <p class="text-center text-muted small">
-        Powered by Hadi Kusuma
-    </p>
-
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
