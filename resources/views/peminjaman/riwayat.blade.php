@@ -7,6 +7,7 @@
     <title>Riwayat Peminjaman</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
@@ -18,7 +19,9 @@
     </div>
 
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
     @endif
 
     <div class="card border-0 shadow-sm">
@@ -26,6 +29,7 @@
 
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
+
                     <thead class="table-primary">
                         <tr>
                             <th>No.</th>
@@ -39,6 +43,7 @@
 
                     <tbody>
                         @forelse($peminjaman as $item)
+
                             @php
                                 $batas = \Carbon\Carbon::parse($item->tnggl_kembali)->startOfDay();
                                 $hariTerlambat = max(0, (int) $batas->diffInDays(today(), false));
@@ -60,8 +65,11 @@
 
                                 <td>
                                     @foreach($item->detail as $detail)
-                                        <div>
+                                        <div class="mb-1">
+                                            <i class="bi bi-pc-display text-primary me-1"></i>
+
                                             {{ $detail->alat->nama_alat ?? 'Alat tidak ditemukan' }}
+
                                             <span class="text-muted">
                                                 ({{ $detail->jumlah }} buah)
                                             </span>
@@ -71,11 +79,17 @@
 
                                 <td>
                                     @if($item->status === 'menunggu')
-                                        <span class="badge bg-warning text-dark">Menunggu</span>
+                                        <span class="badge bg-warning text-dark">
+                                            Menunggu
+                                        </span>
                                     @elseif($item->status === 'dipinjam')
-                                        <span class="badge bg-primary">Disetujui / Dipinjam</span>
+                                        <span class="badge bg-primary">
+                                            Disetujui / Dipinjam
+                                        </span>
                                     @else
-                                        <span class="badge bg-danger">Ditolak</span>
+                                        <span class="badge bg-danger">
+                                            Ditolak
+                                        </span>
                                     @endif
                                 </td>
 
@@ -118,7 +132,9 @@
                                     @elseif($item->status === 'dipinjam')
 
                                         @if($hariTerlambat > 0)
-                                            <span class="badge bg-danger">Belum Kembali - Terlambat</span>
+                                            <span class="badge bg-danger">
+                                                Belum Kembali - Terlambat
+                                            </span>
 
                                             <div class="small text-danger mt-2">
                                                 Terlambat {{ $hariTerlambat }} hari
@@ -146,6 +162,7 @@
                             </tr>
                         @endforelse
                     </tbody>
+
                 </table>
             </div>
 

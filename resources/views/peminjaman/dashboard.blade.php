@@ -131,7 +131,7 @@
                     <div class="card-body text-center p-4">
 
                         <div class="menu-icon text-primary">
-                            <i class="bi bi-tools"></i>
+                            <i class="bi bi-pc-display"></i>
                         </div>
 
                         <h5 class="fw-bold">Data Alat</h5>
@@ -239,6 +239,7 @@
                         <a href="{{ route('notifikasi.index') }}"
                            class="btn btn-danger w-100">
                             Buka Notifikasi
+
                             @if($jumlahNotifikasi > 0)
                                 ({{ $jumlahNotifikasi }})
                             @endif

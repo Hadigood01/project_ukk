@@ -79,6 +79,7 @@
 
                             @php
                                 $pengembalian = $item->pengembalian;
+
                                 $sudahDiterima = $pengembalian
                                     && $pengembalian->status === 'diterima';
 
@@ -123,7 +124,7 @@
                                     @forelse($item->detail as $detail)
 
                                         <div class="mb-1">
-                                            <i class="bi bi-box-seam text-primary"></i>
+                                            <i class="bi bi-pc-display text-primary me-1"></i>
 
                                             {{ $detail->alat->nama_alat ?? 'Alat tidak ditemukan' }}
 
