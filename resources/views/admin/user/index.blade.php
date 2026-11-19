@@ -49,6 +49,7 @@
                     <thead class="table-primary">
                         <tr>
                             <th>No.</th>
+                            <th>ID User</th>
                             <th>Nama User</th>
                             <th>Email</th>
                             <th>Username</th>
@@ -62,6 +63,12 @@
                             <tr>
                                 <td>
                                     {{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ $item->id_user }}
+                                    </span>
                                 </td>
 
                                 <td>{{ $item->nama_user }}</td>
@@ -100,7 +107,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
                                     Belum ada data user.
                                 </td>
                             </tr>
@@ -110,7 +118,9 @@
                 </table>
             </div>
 
-            {{ $users->links('pagination::bootstrap-5') }}
+            <div class="mt-3">
+                {{ $users->links('pagination::bootstrap-5') }}
+            </div>
 
         </div>
     </div>

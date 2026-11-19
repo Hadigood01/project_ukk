@@ -24,7 +24,6 @@
         </a>
     </div>
 
-    {{-- Pesan berhasil --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show">
             {{ session('success') }}
@@ -32,7 +31,6 @@
         </div>
     @endif
 
-    {{-- Pesan kesalahan --}}
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show">
             {{ session('error') }}
@@ -45,9 +43,11 @@
 
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
+
                     <thead class="table-primary">
                         <tr>
                             <th>No.</th>
+                            <th>ID Alat</th>
                             <th>Nama Alat</th>
                             <th>Kategori</th>
                             <th>Stok</th>
@@ -60,7 +60,15 @@
                     <tbody>
                         @forelse($alat as $item)
                             <tr>
-                                <td>{{ $loop->iteration + ($alat->currentPage() - 1) * $alat->perPage() }}</td>
+                                <td>
+                                    {{ $loop->iteration + ($alat->currentPage() - 1) * $alat->perPage() }}
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ $item->id_alat }}
+                                    </span>
+                                </td>
 
                                 <td class="fw-semibold">
                                     {{ $item->nama_alat }}
@@ -101,13 +109,14 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
+                                <td colspan="8" class="text-center text-muted py-4">
                                     <i class="bi bi-inbox fs-2 d-block mb-2"></i>
                                     Belum ada data alat.
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
+
                 </table>
             </div>
 
