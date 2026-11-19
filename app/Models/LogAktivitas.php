@@ -9,7 +9,8 @@ class LogAktivitas extends Model
 {
     protected $table = 'log_aktivitas';
 
-    protected $primaryKey = 'id_log';
+    // Sesuai dengan $table->id() pada migration
+    protected $primaryKey = 'id';
 
     protected $fillable = [
         'id_user',

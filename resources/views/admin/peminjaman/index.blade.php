@@ -1,6 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,11 +16,21 @@
 <div class="container-fluid py-4 px-4">
 
     {{-- HEADER --}}
-    <div class="mb-4">
-        <h3 class="fw-bold mb-1">Data Peminjaman</h3>
-        <p class="text-muted mb-0">
-            Daftar seluruh transaksi peminjaman alat.
-        </p>
+    <div class="d-flex justify-content-between align-items-start mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">Data Peminjaman</h3>
+            <p class="text-muted mb-0">
+                Daftar seluruh transaksi peminjaman alat.
+            </p>
+        </div>
+
+        <a href="{{ route('admin.dashboard') }}"
+           class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i>
+            Kembali ke Dashboard
+        </a>
+
     </div>
 
     {{-- PESAN SUKSES --}}
@@ -305,16 +316,6 @@
             </div>
 
         </div>
-    </div>
-
-    {{-- KEMBALI --}}
-    <div class="mt-3">
-        <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">
-
-            <i class="bi bi-arrow-left me-1"></i>
-            Kembali ke Dashboard
-
-        </a>
     </div>
 
 </div>

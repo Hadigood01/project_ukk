@@ -117,12 +117,17 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/pengembalian/{id}', [PengembalianController::class, 'show'])
             ->name('pengembalian.show');
 
-        // ========================================
-        // LOG AKTIVITAS
-        // ========================================
+        
+// ========================================
+// LOG AKTIVITAS
+// ========================================
 
-        Route::get('/log', [LogAktivitasController::class, 'index'])
-            ->name('log.index');
+Route::get('/log', [LogAktivitasController::class, 'index'])
+->name('log.index');
+
+Route::delete('/log/{id}', [LogAktivitasController::class, 'destroy'])
+->name('log.destroy');
+
     });
 
 

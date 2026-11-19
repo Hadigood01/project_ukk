@@ -28,7 +28,7 @@ class PeminjamanController extends Controller
             'pengembalian'
         ])
             ->latest('create_at')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('admin.peminjaman.index', compact('peminjaman'));
     }
