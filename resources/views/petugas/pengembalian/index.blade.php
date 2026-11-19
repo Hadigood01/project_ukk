@@ -16,7 +16,7 @@
     <div class="mb-4">
         <h3 class="fw-bold mb-1">Pengembalian Alat</h3>
         <p class="text-muted mb-0">
-            Daftar alat yang sedang dipinjam dan perlu dikembalikan.
+            Petugas dapat mengatur batas pengembalian dan menerima alat.
         </p>
     </div>
 
@@ -58,19 +58,42 @@
 
                     <tbody>
                         @forelse($peminjaman as $item)
+                            @php
+                                $batasAktif = $item->tanggal_kembali_petugas
+                                    ?? $item->tnggl_kembali;
+                            @endphp
+
                             <tr>
                                 <td>
                                     {{ $loop->iteration + ($peminjaman->currentPage() - 1) * $peminjaman->perPage() }}
                                 </td>
 
-                                <td>{{ $item->user->nama_user ?? '-' }}</td>
+                                <td>
+                                    {{ $item->user->nama_user ?? '-' }}
+                                </td>
 
                                 <td>
                                     {{ \Carbon\Carbon::parse($item->tnggl_pinjam)->format('d-m-Y') }}
                                 </td>
 
                                 <td>
-                                    {{ \Carbon\Carbon::parse($item->tnggl_kembali)->format('d-m-Y') }}
+                                    <span class="fw-semibold text-primary">
+                                        {{ \Carbon\Carbon::parse($batasAktif)->format('d-m-Y') }}
+                                    </span>
+
+                                    @if($item->tanggal_kembali_petugas)
+                                        <div>
+                                            <small class="text-success">
+                                                Diatur Petugas
+                                            </small>
+                                        </div>
+                                    @else
+                                        <div>
+                                            <small class="text-muted">
+                                                Tanggal awal Peminjam
+                                            </small>
+                                        </div>
+                                    @endif
                                 </td>
 
                                 <td>
@@ -84,134 +107,20 @@
 
                                 <td>
                                     <button type="button"
-                                            class="btn btn-sm btn-success"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#modalKembali{{ $item->id_pinjam }}">
+                                        class="btn btn-sm btn-success"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalKembali{{ $item->id_pinjam }}">
                                         <i class="bi bi-box-arrow-in-left"></i>
                                         Proses Pengembalian
                                     </button>
                                 </td>
                             </tr>
 
-                            {{-- Modal Pengembalian --}}
-                            <div class="modal fade"
-                                 id="modalKembali{{ $item->id_pinjam }}"
-                                 tabindex="-1"
-                                 aria-hidden="true">
-
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-
-                                        <form action="{{ route('petugas.pengembalian.store', $item->id_pinjam) }}"
-                                              method="POST"
-                                              class="form-pengembalian">
-
-                                            @csrf
-
-                                            <div class="modal-header">
-                                                <h5 class="modal-title fw-bold">
-                                                    <i class="bi bi-arrow-return-left me-1"></i>
-                                                    Form Pengembalian Alat
-                                                </h5>
-
-                                                <button type="button"
-                                                        class="btn-close"
-                                                        data-bs-dismiss="modal"></button>
-                                            </div>
-
-                                            <div class="modal-body">
-
-                                                <p class="mb-2">
-                                                    Peminjam:
-                                                    <strong>{{ $item->user->nama_user ?? '-' }}</strong>
-                                                </p>
-
-                                                <p class="mb-3">
-                                                    Batas pengembalian:
-                                                    <strong class="text-primary">
-                                                        {{ \Carbon\Carbon::parse($item->tnggl_kembali)->format('d-m-Y') }}
-                                                    </strong>
-                                                </p>
-
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-semibold">
-                                                        Tanggal Pengembalian
-                                                    </label>
-
-                                                    <input type="date"
-                                                           name="tanggal_kembali"
-                                                           class="form-control tanggal-kembali"
-                                                           value="{{ date('Y-m-d') }}"
-                                                           max="{{ date('Y-m-d') }}"
-                                                           data-batas="{{ \Carbon\Carbon::parse($item->tnggl_kembali)->format('Y-m-d') }}"
-                                                           required>
-                                                </div>
-
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-semibold">
-                                                        Kondisi Alat
-                                                    </label>
-
-                                                    <select name="kondisi_alat"
-                                                            class="form-select"
-                                                            required>
-                                                        <option value="">-- Pilih Kondisi --</option>
-                                                        <option value="Baik">Baik</option>
-                                                        <option value="Rusak Ringan">Rusak Ringan</option>
-                                                        <option value="Rusak Berat">Rusak Berat</option>
-                                                    </select>
-                                                </div>
-
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body">
-
-                                                        <div class="d-flex justify-content-between mb-2">
-                                                            <span>Hari keterlambatan</span>
-                                                            <strong class="jumlah-hari">0 hari</strong>
-                                                        </div>
-
-                                                        <div class="d-flex justify-content-between">
-                                                            <span>Perkiraan denda</span>
-                                                            <strong class="text-danger nominal-denda">
-                                                                Rp0
-                                                            </strong>
-                                                        </div>
-
-                                                        <hr>
-
-                                                        <small class="text-muted">
-                                                            Tarif denda: Rp1.000 per hari keterlambatan.
-                                                        </small>
-
-                                                    </div>
-                                                </div>
-
-                                            </div>
-
-                                            <div class="modal-footer">
-                                                <button type="button"
-                                                        class="btn btn-secondary"
-                                                        data-bs-dismiss="modal">
-                                                    Batal
-                                                </button>
-
-                                                <button type="submit" class="btn btn-success">
-                                                    <i class="bi bi-save me-1"></i>
-                                                    Simpan Pengembalian
-                                                </button>
-                                            </div>
-
-                                        </form>
-
-                                    </div>
-                                </div>
-                            </div>
-
                         @empty
                             <tr>
                                 <td colspan="6" class="text-center text-muted py-4">
                                     <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                                    Tidak ada alat yang sedang dipinjam.
+                                    Tidak ada pengajuan pengembalian.
                                 </td>
                             </tr>
                         @endforelse
@@ -227,6 +136,154 @@
         </div>
     </div>
 
+    {{-- MODAL PENGEMBALIAN --}}
+    @foreach($peminjaman as $item)
+
+        @php
+            $batasAktif = $item->tanggal_kembali_petugas
+                ?? $item->tnggl_kembali;
+        @endphp
+
+        <div class="modal fade"
+            id="modalKembali{{ $item->id_pinjam }}"
+            tabindex="-1"
+            aria-hidden="true">
+
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <form action="{{ route('petugas.pengembalian.store', $item->id_pinjam) }}"
+                        method="POST"
+                        class="form-pengembalian">
+
+                        @csrf
+
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold">
+                                <i class="bi bi-arrow-return-left me-1"></i>
+                                Form Pengembalian Alat
+                            </h5>
+
+                            <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+
+                            <p class="mb-3">
+                                Peminjam:
+                                <strong>{{ $item->user->nama_user ?? '-' }}</strong>
+                            </p>
+
+                            <div class="alert alert-info">
+                                <small>
+                                    Tanggal awal dari Peminjam:
+                                    <strong>
+                                        {{ \Carbon\Carbon::parse($item->tnggl_kembali)->format('d-m-Y') }}
+                                    </strong>
+                                </small>
+                            </div>
+
+                            {{-- TANGGAL BATAS YANG DIATUR PETUGAS --}}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    Batas Pengembalian (Diatur Petugas)
+                                </label>
+
+                                <input type="date"
+                                    name="batas_pengembalian"
+                                    class="form-control batas-pengembalian"
+                                    value="{{ \Carbon\Carbon::parse($batasAktif)->format('Y-m-d') }}"
+                                    required>
+
+                                <small class="text-muted">
+                                    Petugas dapat mengganti tanggal batas pengembalian di sini.
+                                </small>
+                            </div>
+
+                            {{-- TANGGAL SEBENARNYA --}}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    Tanggal Pengembalian Sebenarnya
+                                </label>
+
+                                <input type="date"
+                                    name="tanggal_kembali"
+                                    class="form-control tanggal-kembali"
+                                    value="{{ date('Y-m-d') }}"
+                                    max="{{ date('Y-m-d') }}"
+                                    required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    Kondisi Alat
+                                </label>
+
+                                <select name="kondisi_alat"
+                                    class="form-select"
+                                    required>
+
+                                    <option value="">-- Pilih Kondisi --</option>
+                                    <option value="Baik">Baik</option>
+                                    <option value="Rusak Ringan">Rusak Ringan</option>
+                                    <option value="Rusak Berat">Rusak Berat</option>
+
+                                </select>
+                            </div>
+
+                            {{-- PERHITUNGAN DENDA --}}
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Hari keterlambatan</span>
+                                        <strong class="jumlah-hari">0 hari</strong>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between">
+                                        <span>Perkiraan denda</span>
+                                        <strong class="text-danger nominal-denda">
+                                            Rp0
+                                        </strong>
+                                    </div>
+
+                                    <hr>
+
+                                    <small class="text-muted">
+                                        Tarif denda: Rp1.000 per hari keterlambatan.
+                                    </small>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+
+                            <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                                Batal
+                            </button>
+
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-save me-1"></i>
+                                Simpan Pengembalian
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    @endforeach
+
     <div class="mt-3">
         <a href="{{ route('petugas.dashboard') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left me-1"></i>
@@ -241,16 +298,18 @@
 <script>
 document.querySelectorAll('.form-pengembalian').forEach(function(form) {
 
+    const inputBatas = form.querySelector('.batas-pengembalian');
     const inputTanggal = form.querySelector('.tanggal-kembali');
-    const batasTanggal = inputTanggal.dataset.batas;
+
     const jumlahHari = form.querySelector('.jumlah-hari');
     const nominalDenda = form.querySelector('.nominal-denda');
 
     function hitungDenda() {
 
+        const batasTanggal = inputBatas.value;
         const tanggalDipilih = inputTanggal.value;
 
-        if (!tanggalDipilih) {
+        if (!batasTanggal || !tanggalDipilih) {
             jumlahHari.textContent = '0 hari';
             nominalDenda.textContent = 'Rp0';
             return;
@@ -272,6 +331,7 @@ document.querySelectorAll('.form-pengembalian').forEach(function(form) {
             new Intl.NumberFormat('id-ID').format(denda);
     }
 
+    inputBatas.addEventListener('change', hitungDenda);
     inputTanggal.addEventListener('change', hitungDenda);
 
     hitungDenda();

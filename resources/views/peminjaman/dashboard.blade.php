@@ -161,7 +161,7 @@
                         <h5 class="fw-bold">Ajukan Peminjaman</h5>
 
                         <p class="text-muted">
-                            Ajukan peminjaman alat sesuai kebutuhan.
+                            Ajukan peminjaman alat sesuai kebutuhan sekarang juga.
                         </p>
 
                         <a href="{{ route('peminjaman.create') }}"

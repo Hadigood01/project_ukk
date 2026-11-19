@@ -1,10 +1,10 @@
-
+```php
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Pengembalian</title>
+    <title>Riwayat Pengembalian Alat</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -12,87 +12,95 @@
 
 <div class="container py-4">
 
-    <div class="mb-4">
-        <h3 class="fw-bold">Data Pengembalian</h3>
-        <p class="text-muted">Daftar transaksi pengembalian alat.</p>
-    </div>
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Riwayat Pengembalian Alat</h4>
+        </div>
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
-    <div class="card border-0 shadow-sm">
         <div class="card-body">
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
+            @if(session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
 
-                    <thead class="table-primary">
-                        <tr>
-                            <th>No.</th>
-                            <th>Nama Peminjam</th>
-                            <th>Tanggal Kembali</th>
-                            <th>Kondisi Alat</th>
-                            <th>Denda</th>
-                        </tr>
-                    </thead>
+            @if($pengembalian->count() > 0)
 
-                    <tbody>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle">
 
-                        @forelse($pengembalian as $item)
+                        <thead class="table-light">
                             <tr>
-                                <td>
-                                    {{ $loop->iteration + ($pengembalian->currentPage() - 1) * $pengembalian->perPage() }}
-                                </td>
-
-                                <td>
-                                    {{ $item->peminjaman->user->nama_user ?? '-' }}
-                                </td>
-
-                                <td>
-                                    {{ \Carbon\Carbon::parse($item->tanggal_kembali)->format('d-m-Y') }}
-                                </td>
-
-                                <td>
-                                    @if($item->kondisi_alat == 'Baik')
-                                        <span class="badge bg-success">Baik</span>
-                                    @elseif($item->kondisi_alat == 'Rusak Ringan')
-                                        <span class="badge bg-warning text-dark">Rusak Ringan</span>
-                                    @else
-                                        <span class="badge bg-danger">Rusak Berat</span>
-                                    @endif
-                                </td>
-
-                                <td>
-                                    Rp{{ number_format($item->denda, 0, ',', '.') }}
-                                </td>
+                                <th>No.</th>
+                                <th>ID Pengembalian</th>
+                                <th>Nama Peminjam</th>
+                                <th>Tanggal Pengembalian</th>
+                                <th>Denda</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
                             </tr>
+                        </thead>
 
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-4">
-                                    Belum ada data pengembalian.
-                                </td>
-                            </tr>
-                        @endforelse
+                        <tbody>
+                            @foreach($pengembalian as $item)
+                                <tr>
+                                    <td>{{ $pengembalian->firstItem() + $loop->index }}</td>
 
-                    </tbody>
+                                    <td>{{ $item->id_kembali }}</td>
 
-                </table>
-            </div>
+                                    <td>
+                                        {{ $item->peminjaman->user->nama_user ?? '-' }}
+                                    </td>
 
-            {{ $pengembalian->links('pagination::bootstrap-5') }}
+                                    <td>
+                                        {{ $item->tanggal_kembali
+                                            ? \Carbon\Carbon::parse($item->tanggal_kembali)->format('d-m-Y')
+                                            : '-' }}
+                                    </td>
+
+                                    <td class="fw-bold text-danger">
+                                        Rp{{ number_format($item->denda ?? 0, 0, ',', '.') }}
+                                    </td>
+
+                                    <td>
+                                        @if($item->status == 'diterima')
+                                            <span class="badge bg-success">Diterima</span>
+                                        @else
+                                            <span class="badge bg-warning text-dark">
+                                                {{ ucfirst($item->status) }}
+                                            </span>
+                                        @endif
+                                    </td>
+
+                                    <td>
+                                        <a href="{{ route('admin.pengembalian.show', $item->id_kembali) }}"
+                                           class="btn btn-primary btn-sm">
+                                            Lihat Nota
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+
+                    </table>
+                </div>
+
+                <div class="mt-3">
+                    {{ $pengembalian->links() }}
+                </div>
+
+            @else
+                <div class="alert alert-info text-center">
+                    Belum ada riwayat pengembalian alat.
+                </div>
+            @endif
 
         </div>
-    </div>
-
-    <div class="mt-3">
-        <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">
-            Kembali ke Dashboard
-        </a>
     </div>
 
 </div>
 
 </body>
 </html>
+```

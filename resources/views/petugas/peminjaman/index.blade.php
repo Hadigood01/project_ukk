@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,35 +14,29 @@
 
 <div class="container py-4">
 
-    <!-- JUDUL -->
     <div class="mb-4">
         <h3 class="fw-bold mb-1">Persetujuan Peminjaman</h3>
         <p class="text-muted mb-0">
-            Periksa dan proses pengajuan peminjaman alat.
+            Periksa pengajuan, tentukan batas pengembalian, lalu proses persetujuan.
         </p>
     </div>
 
-    <!-- PESAN SUKSES -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show">
             <i class="bi bi-check-circle me-1"></i>
             {{ session('success') }}
-
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
 
-    <!-- PESAN ERROR -->
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show">
             <i class="bi bi-exclamation-circle me-1"></i>
             {{ session('error') }}
-
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
 
-    <!-- VALIDASI -->
     @if($errors->any())
         <div class="alert alert-danger">
             @foreach($errors->all() as $error)
@@ -51,7 +45,6 @@
         </div>
     @endif
 
-    <!-- TABEL PEMINJAMAN -->
     <div class="card border-0 shadow-sm">
         <div class="card-body">
 
@@ -63,7 +56,8 @@
                             <th>No.</th>
                             <th>Peminjam</th>
                             <th>Tanggal Pinjam</th>
-                            <th>Tanggal Kembali</th>
+                            <th>Tanggal Kembali Awal</th>
+                            <th>Batas Pengembalian Petugas</th>
                             <th>Alat yang Dipinjam</th>
                             <th>Status</th>
                             <th class="text-center">Aksi</th>
@@ -75,33 +69,60 @@
                         @forelse($peminjaman as $item)
 
                             <tr>
-                                <!-- NOMOR -->
                                 <td>
                                     {{ $loop->iteration + ($peminjaman->currentPage() - 1) * $peminjaman->perPage() }}
                                 </td>
 
-                                <!-- NAMA PEMINJAM -->
                                 <td>
                                     <strong>
                                         {{ $item->user->nama_user ?? 'Pengguna tidak ditemukan' }}
                                     </strong>
                                 </td>
 
-                                <!-- TANGGAL PINJAM -->
                                 <td>
                                     {{ \Carbon\Carbon::parse($item->tnggl_pinjam)->format('d-m-Y') }}
                                 </td>
 
-                                <!-- TANGGAL KEMBALI -->
                                 <td>
                                     {{ \Carbon\Carbon::parse($item->tnggl_kembali)->format('d-m-Y') }}
                                 </td>
 
-                                <!-- ALAT YANG DIPINJAM -->
+                                <td style="min-width: 220px;">
+
+                                    <form action="{{ route('petugas.peminjaman.aturBatas', $item->id_pinjam) }}"
+                                          method="POST">
+
+                                        @csrf
+
+                                        <input type="date"
+                                               name="tanggal_kembali_petugas"
+                                               class="form-control form-control-sm mb-2"
+                                               value="{{ $item->tanggal_kembali_petugas ?? $item->tnggl_kembali }}"
+                                               required>
+
+                                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            Simpan Batas
+                                        </button>
+
+                                    </form>
+
+                                    @if($item->tanggal_kembali_petugas)
+                                        <small class="text-success d-block mt-1">
+                                            <i class="bi bi-check-circle"></i>
+                                            Tanggal sudah diatur Petugas
+                                        </small>
+                                    @else
+                                        <small class="text-muted d-block mt-1">
+                                            Menggunakan tanggal awal peminjam
+                                        </small>
+                                    @endif
+
+                                </td>
+
                                 <td>
                                     @foreach($item->detail as $detail)
                                         <div class="mb-1">
-
                                             <i class="bi bi-pc-display text-primary me-1"></i>
 
                                             {{ $detail->alat->nama_alat ?? 'Alat tidak ditemukan' }}
@@ -109,23 +130,19 @@
                                             <span class="text-muted">
                                                 ({{ $detail->jumlah }} buah)
                                             </span>
-
                                         </div>
                                     @endforeach
                                 </td>
 
-                                <!-- STATUS -->
                                 <td>
                                     <span class="badge bg-warning text-dark">
                                         Menunggu
                                     </span>
                                 </td>
 
-                                <!-- AKSI -->
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-1">
 
-                                        <!-- SETUJUI -->
                                         <form action="{{ route('petugas.peminjaman.setujui', $item->id_pinjam) }}"
                                               method="POST"
                                               onsubmit="return confirm('Yakin ingin menyetujui peminjaman ini?')">
@@ -139,7 +156,6 @@
 
                                         </form>
 
-                                        <!-- TOLAK -->
                                         <form action="{{ route('petugas.peminjaman.tolak', $item->id_pinjam) }}"
                                               method="POST"
                                               onsubmit="return confirm('Yakin ingin menolak peminjaman ini?')">
@@ -155,18 +171,14 @@
 
                                     </div>
                                 </td>
-
                             </tr>
 
                         @empty
 
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
-
+                                <td colspan="8" class="text-center text-muted py-4">
                                     <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-
                                     Tidak ada pengajuan peminjaman yang menunggu persetujuan.
-
                                 </td>
                             </tr>
 
@@ -177,7 +189,6 @@
                 </table>
             </div>
 
-            <!-- PAGINATION -->
             <div class="mt-3">
                 {{ $peminjaman->links('pagination::bootstrap-5') }}
             </div>
@@ -185,7 +196,6 @@
         </div>
     </div>
 
-    <!-- KEMBALI KE DASHBOARD -->
     <div class="mt-3">
         <a href="{{ route('petugas.dashboard') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left me-1"></i>

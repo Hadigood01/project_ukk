@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -14,231 +13,118 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\LogAktivitasController;
 use App\Http\Controllers\NotifikasiController;
 
-
-// ========================================
 // LOGIN
-// ========================================
+Route::get('/', [AuthController::class, 'login'])->name('login');
+Route::post('/login', [AuthController::class, 'prosesLogin'])->name('login.proses');
 
-Route::get('/', [AuthController::class, 'login'])
-    ->name('login');
-
-Route::post('/login', [AuthController::class, 'prosesLogin'])
-    ->name('login.proses');
-
-
-// ========================================
 // REGISTER
-// ========================================
+Route::get('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/register', [AuthController::class, 'prosesRegister'])->name('register.proses');
 
-Route::get('/register', [AuthController::class, 'register'])
-    ->name('register');
-
-Route::post('/register', [AuthController::class, 'prosesRegister'])
-    ->name('register.proses');
-
-
-// ========================================
 // LOGOUT
-// ========================================
-
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
-
-// ========================================
 // NOTIFIKASI
-// ========================================
-
 Route::middleware('auth')
     ->prefix('notifikasi')
     ->name('notifikasi.')
     ->group(function () {
-
-        // Menampilkan notifikasi
-        Route::get('/', [NotifikasiController::class, 'index'])
-            ->name('index');
-
-        // Menandai semua notifikasi sudah dibaca
-        Route::post('/baca-semua', [NotifikasiController::class, 'bacaSemua'])
-            ->name('bacaSemua');
-
-        // Menandai satu notifikasi sudah dibaca
-        Route::post('/{id}/baca', [NotifikasiController::class, 'baca'])
-            ->name('baca');
+        Route::get('/', [NotifikasiController::class, 'index'])->name('index');
+        Route::post('/baca-semua', [NotifikasiController::class, 'bacaSemua'])->name('bacaSemua');
+        Route::post('/{id}/baca', [NotifikasiController::class, 'baca'])->name('baca');
     });
 
-
-// ========================================
 // ADMIN
-// ========================================
-
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
 
-        // Dashboard admin
-        Route::get('/dashboard', [DashboardController::class, 'admin'])
-            ->name('dashboard');
-
-        // Manajemen pengguna
         Route::resource('user', UserController::class);
-
-        // Manajemen kategori
         Route::resource('kategori', KategoriController::class);
-
-        // Manajemen alat khusus admin
         Route::resource('alat', AlatController::class);
 
-        // ========================================
-        // MANAJEMEN PEMINJAMAN
-        // ========================================
+        Route::get('/peminjaman', [PeminjamanController::class, 'index'])->name('peminjaman.index');
+        Route::get('/peminjaman/{id}/edit', [PeminjamanController::class, 'edit'])->name('peminjaman.edit');
+        Route::put('/peminjaman/{id}', [PeminjamanController::class, 'update'])->name('peminjaman.update');
+        Route::delete('/peminjaman/{id}', [PeminjamanController::class, 'destroy'])->name('peminjaman.destroy');
 
-        Route::get('/peminjaman', [PeminjamanController::class, 'index'])
-            ->name('peminjaman.index');
+        Route::get('/pengembalian', [PengembalianController::class, 'index'])->name('pengembalian.index');
+        Route::get('/pengembalian/{id}', [PengembalianController::class, 'show'])->name('pengembalian.show');
 
-        Route::get('/peminjaman/{id}/edit', [PeminjamanController::class, 'edit'])
-            ->name('peminjaman.edit');
-
-        Route::put('/peminjaman/{id}', [PeminjamanController::class, 'update'])
-            ->name('peminjaman.update');
-
-        Route::delete('/peminjaman/{id}', [PeminjamanController::class, 'destroy'])
-            ->name('peminjaman.destroy');
-
-        // ========================================
-        // RIWAYAT PENGEMBALIAN
-        // ========================================
-
-        Route::get('/pengembalian', [PengembalianController::class, 'index'])
-            ->name('pengembalian.index');
-
-        Route::get('/pengembalian/{id}', [PengembalianController::class, 'show'])
-            ->name('pengembalian.show');
-
-        
-// ========================================
-// LOG AKTIVITAS
-// ========================================
-
-Route::get('/log', [LogAktivitasController::class, 'index'])
-->name('log.index');
-
-Route::delete('/log/{id}', [LogAktivitasController::class, 'destroy'])
-->name('log.destroy');
-
+        Route::get('/log', [LogAktivitasController::class, 'index'])->name('log.index');
+        Route::delete('/log/{id}', [LogAktivitasController::class, 'destroy'])->name('log.destroy');
     });
 
-
-// ========================================
 // PETUGAS
-// ========================================
-
 Route::middleware(['auth', 'role:petugas'])
     ->prefix('petugas')
     ->name('petugas.')
     ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'petugas'])->name('dashboard');
 
-        // Dashboard petugas
-        Route::get('/dashboard', [DashboardController::class, 'petugas'])
-            ->name('dashboard');
+        Route::get('/alat', [AlatController::class, 'index'])->name('alat.index');
 
-        // ========================================
         // PEMINJAMAN
-        // ========================================
-
-        // Daftar pengajuan peminjaman
         Route::get('/peminjaman', [PeminjamanController::class, 'persetujuan'])
             ->name('peminjaman.index');
 
-        // Menyetujui peminjaman
         Route::post('/peminjaman/{id}/setujui', [PeminjamanController::class, 'setujui'])
             ->name('peminjaman.setujui');
 
-        // Menolak peminjaman
         Route::post('/peminjaman/{id}/tolak', [PeminjamanController::class, 'tolak'])
             ->name('peminjaman.tolak');
 
-        // ========================================
-        // PENGEMBALIAN
-        // ========================================
+        // PETUGAS MENGATUR BATAS PENGEMBALIAN
+        Route::post('/peminjaman/{id}/atur-batas', [PengembalianController::class, 'aturBatas'])
+            ->name('peminjaman.aturBatas');
 
-        // Daftar alat yang harus dikembalikan
+        // PENGEMBALIAN
         Route::get('/pengembalian', [PengembalianController::class, 'monitor'])
             ->name('pengembalian.index');
 
-        // Memproses pengembalian
         Route::post('/pengembalian/{id}', [PengembalianController::class, 'store'])
             ->name('pengembalian.store');
 
-        // ========================================
         // LAPORAN
-        // ========================================
-
-        // Laporan peminjaman
         Route::get('/laporan', [LaporanController::class, 'index'])
             ->name('laporan.index');
 
-        // Laporan pengembalian
         Route::get('/laporan/pengembalian', [LaporanController::class, 'pengembalian'])
             ->name('laporan.pengembalian');
     });
 
-
-// ========================================
 // PEMINJAM
-// ========================================
-
 Route::middleware(['auth', 'role:peminjaman'])
     ->prefix('peminjam')
     ->name('peminjaman.')
     ->group(function () {
-
-        // Dashboard peminjam
         Route::get('/dashboard', [DashboardController::class, 'peminjaman'])
             ->name('dashboard');
 
-        // ========================================
-        // DATA ALAT
-        // ========================================
-
-        // Daftar alat khusus peminjam
-        // Tidak menggunakan index() karena index() adalah halaman admin
         Route::get('/alat', [AlatController::class, 'daftar'])
             ->name('alat.index');
 
-        // ========================================
-        // PEMINJAMAN
-        // ========================================
-
-        // Form pengajuan peminjaman
         Route::get('/peminjaman', [PeminjamanController::class, 'create'])
             ->name('create');
 
-        // Proses pengajuan peminjaman
         Route::post('/peminjaman', [PeminjamanController::class, 'store'])
             ->name('store');
 
-        // Riwayat peminjaman
         Route::get('/riwayat', [PeminjamanController::class, 'riwayat'])
             ->name('riwayat');
 
-        // ========================================
-        // PENGEMBALIAN
-        // ========================================
-
-        // Daftar pengembalian milik peminjam
         Route::get('/pengembalian', [PengembalianController::class, 'pengembalianSaya'])
             ->name('pengembalian.index');
 
-        // Form pengajuan pengembalian
         Route::get('/pengembalian/{id}/ajukan', [
             PengembalianController::class,
             'formAjukanPengembalian'
         ])->name('pengembalian.form');
 
-        // Proses pengajuan pengembalian
         Route::post('/pengembalian/{id}', [
             PengembalianController::class,
             'ajukanPengembalian'

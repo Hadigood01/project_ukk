@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -78,6 +77,7 @@
 
 <nav class="navbar navbar-dark px-3 px-md-4 py-3">
     <div class="container-fluid">
+
         <span class="navbar-brand fw-semibold">
             <i class="bi bi-pc-display me-2"></i>
             Peminjaman Alat Komputer - Hadi Kusuma
@@ -85,27 +85,28 @@
 
         <div class="d-flex align-items-center gap-3">
 
-    <a href="{{ route('notifikasi.index') }}"
-       class="btn btn-light btn-sm position-relative"
-       title="Notifikasi">
+            <a href="{{ route('notifikasi.index') }}"
+               class="btn btn-light btn-sm position-relative"
+               title="Notifikasi">
 
-        <i class="bi bi-bell fs-5"></i>
+                <i class="bi bi-bell fs-5"></i>
 
-        @if(auth()->user()->unreadNotifications()->count() > 0)
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ auth()->user()->unreadNotifications()->count() }}
-            </span>
-        @endif
-    </a>
+                @if(auth()->user()->unreadNotifications()->count() > 0)
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ auth()->user()->unreadNotifications()->count() }}
+                    </span>
+                @endif
+            </a>
 
-    <form action="{{ route('logout') }}" method="POST">
-        @csrf
-        <button type="submit" class="btn btn-danger btn-sm">
-            <i class="bi bi-box-arrow-right me-1"></i> Logout
-        </button>
-    </form>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="bi bi-box-arrow-right me-1"></i>
+                    Logout
+                </button>
+            </form>
 
-</div>
+        </div>
     </div>
 </nav>
 
@@ -170,7 +171,7 @@
 
             <div class="row g-2">
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-3">
                     <a href="{{ route('petugas.peminjaman.index') }}" class="menu-link">
                         <i class="bi bi-clipboard-check text-primary"></i>
                         Persetujuan Peminjaman
@@ -178,7 +179,7 @@
                     </a>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-3">
                     <a href="{{ route('petugas.pengembalian.index') }}" class="menu-link">
                         <i class="bi bi-arrow-return-left text-success"></i>
                         Memantau Pengembalian
@@ -186,7 +187,15 @@
                     </a>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-3">
+                    <a href="{{ route('petugas.alat.index') }}" class="menu-link">
+                        <i class="bi bi-box-seam text-info"></i>
+                        Melihat Data Alat
+                        <i class="bi bi-chevron-right ms-auto"></i>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
                     <a href="{{ route('petugas.laporan.index') }}" class="menu-link">
                         <i class="bi bi-file-earmark-bar-graph text-warning"></i>
                         Mencetak Laporan
@@ -201,6 +210,7 @@
     <p class="text-center text-muted small mt-4">
         Sistem Informasi Peminjaman Alat Komputer
     </p>
+
     <p class="text-center text-muted small mt-4">
         Powered-by Hadi Kusuma
     </p>

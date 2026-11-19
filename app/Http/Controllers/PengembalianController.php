@@ -34,6 +34,48 @@ class PengembalianController extends Controller
 
     /*
     |--------------------------------------------------------------------------
+    | PETUGAS: MENGATUR BATAS PENGEMBALIAN
+    |--------------------------------------------------------------------------
+    */
+
+    public function aturBatas(Request $request, $id)
+    {
+        $data = $request->validate([
+            'tanggal_kembali_petugas' => 'required|date',
+        ], [
+            'tanggal_kembali_petugas.required' => 'Tanggal batas pengembalian wajib diisi.',
+            'tanggal_kembali_petugas.date' => 'Tanggal batas pengembalian tidak valid.',
+        ]);
+
+        $pinjam = Peminjaman::findOrFail($id);
+
+        if (!in_array($pinjam->status, ['menunggu', 'dipinjam'])) {
+            return back()->with(
+                'error',
+                'Tanggal hanya bisa diatur untuk peminjaman yang menunggu persetujuan atau sedang dipinjam.'
+            );
+        }
+
+        $pinjam->update([
+            'tanggal_kembali_petugas' => $data['tanggal_kembali_petugas'],
+        ]);
+
+        LogAktivitas::create([
+            'id_user' => auth()->id(),
+            'aktivitas' => 'Mengatur batas pengembalian peminjaman ID '
+                . $pinjam->id_pinjam
+                . ' menjadi '
+                . Carbon::parse($data['tanggal_kembali_petugas'])->format('d-m-Y'),
+        ]);
+
+        return back()->with(
+            'success',
+            'Batas pengembalian berhasil diatur oleh Petugas.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | PEMINJAM: MENGAJUKAN PENGEMBALIAN
     |--------------------------------------------------------------------------
     */
@@ -41,19 +83,19 @@ class PengembalianController extends Controller
     public function ajukanPengembalian($id)
     {
         DB::transaction(function () use ($id) {
-    
+
             $pinjam = Peminjaman::where('id_user', auth()->id())
                 ->lockForUpdate()
                 ->findOrFail($id);
-    
+
             if ($pinjam->status !== 'dipinjam') {
                 abort(422, 'Peminjaman belum disetujui atau sudah selesai.');
             }
-    
+
             if ($pinjam->pengembalian()->exists()) {
                 abort(422, 'Pengajuan pengembalian sudah pernah dibuat.');
             }
-    
+
             Pengembalian::create([
                 'id_pinjam' => $pinjam->id_pinjam,
                 'tanggal_kembali' => null,
@@ -62,17 +104,17 @@ class PengembalianController extends Controller
                 'diterima_oleh' => null,
                 'status' => 'diajukan',
             ]);
-    
+
             LogAktivitas::create([
                 'id_user' => auth()->id(),
                 'aktivitas' => 'Mengajukan pengembalian peminjaman ID '
                     . $pinjam->id_pinjam,
             ]);
-    
+
             User::whereIn('level', ['admin', 'petugas'])
                 ->get()
                 ->each(function ($user) use ($pinjam) {
-    
+
                     $user->notify(new TransaksiNotification(
                         'Pengajuan Pengembalian Baru',
                         'Peminjam mengajukan pengembalian transaksi ID '
@@ -82,11 +124,12 @@ class PengembalianController extends Controller
                     ));
                 });
         });
-    
+
         return redirect()
             ->route('peminjaman.pengembalian.index')
             ->with('success', 'Pengajuan pengembalian berhasil dikirim.');
     }
+
     /*
     |--------------------------------------------------------------------------
     | PEMINJAM: MELIHAT PENGEMBALIAN SAYA
@@ -94,39 +137,42 @@ class PengembalianController extends Controller
     */
 
     public function pengembalianSaya()
-{
-    $peminjaman = Peminjaman::with([
-        'detail.alat',
-        'pengembalian'
-    ])
-        ->where('id_user', auth()->id())
-        ->where('status', 'dipinjam')
-        ->whereDoesntHave('pengembalian')
-        ->orderBy('tnggl_kembali', 'asc')
-        ->paginate(10);
+    {
+        $peminjaman = Peminjaman::with([
+            'detail.alat',
+            'pengembalian'
+        ])
+            ->where('id_user', auth()->id())
+            ->where('status', 'dipinjam')
+            ->whereDoesntHave('pengembalian')
+            ->orderByRaw('COALESCE(tanggal_kembali_petugas, tnggl_kembali) ASC')
+            ->paginate(10);
 
-    foreach ($peminjaman as $item) {
+        foreach ($peminjaman as $item) {
 
-        $batas = Carbon::parse($item->tnggl_kembali)->startOfDay();
+            $batasTanggal = $item->tanggal_kembali_petugas
+                ?? $item->tnggl_kembali;
 
-        $hariTerlambat = max(
-            0,
-            (int) $batas->diffInDays(today(), false)
+            $batas = Carbon::parse($batasTanggal)->startOfDay();
+
+            $hariTerlambat = max(
+                0,
+                (int) $batas->diffInDays(today(), false)
+            );
+
+            $item->hari_terlambat = $hariTerlambat;
+            $item->estimasi_denda = $hariTerlambat * 1000;
+        }
+
+        return view(
+            'peminjaman.pengembalian.index',
+            compact('peminjaman')
         );
-
-        $item->hari_terlambat = $hariTerlambat;
-        $item->estimasi_denda = $hariTerlambat * 1000;
     }
-
-    return view(
-        'peminjaman.pengembalian.index',
-        compact('peminjaman')
-    );
-}
 
     /*
     |--------------------------------------------------------------------------
-    | PETUGAS: DAFTAR PENGAJUAN
+    | PETUGAS: DAFTAR PENGAJUAN PENGEMBALIAN
     |--------------------------------------------------------------------------
     */
 
@@ -141,7 +187,7 @@ class PengembalianController extends Controller
             ->whereHas('pengembalian', function ($query) {
                 $query->where('status', 'diajukan');
             })
-            ->orderBy('tnggl_kembali', 'asc')
+            ->orderByRaw('COALESCE(tanggal_kembali_petugas, tnggl_kembali) ASC')
             ->paginate(10);
 
         return view(
@@ -152,7 +198,7 @@ class PengembalianController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | PETUGAS: MENERIMA PENGEMBALIAN
+    | PETUGAS: MENERIMA PENGEMBALIAN DAN MENGHITUNG DENDA
     |--------------------------------------------------------------------------
     */
 
@@ -161,6 +207,10 @@ class PengembalianController extends Controller
         $data = $request->validate([
             'tanggal_kembali' => 'required|date|before_or_equal:today',
             'kondisi_alat' => 'required|string|max:100',
+        ], [
+            'tanggal_kembali.required' => 'Tanggal pengembalian sebenarnya wajib diisi.',
+            'tanggal_kembali.before_or_equal' => 'Tanggal pengembalian tidak boleh melebihi hari ini.',
+            'kondisi_alat.required' => 'Kondisi alat wajib dipilih.',
         ]);
 
         DB::transaction(function () use ($data, $id) {
@@ -184,15 +234,18 @@ class PengembalianController extends Controller
                 abort(422, 'Pengajuan belum ada atau sudah diproses.');
             }
 
-            // Menghitung keterlambatan
+            // Mengambil batas tanggal dari Petugas.
+            // Jika belum diatur, gunakan tanggal dari peminjam.
             $tanggalBatas = Carbon::parse(
-                $pinjam->tnggl_kembali
+                $pinjam->tanggal_kembali_petugas ?? $pinjam->tnggl_kembali
             )->startOfDay();
 
+            // Tanggal aktual alat diterima.
             $tanggalDikembalikan = Carbon::parse(
                 $data['tanggal_kembali']
             )->startOfDay();
 
+            // Menghitung jumlah hari keterlambatan.
             $terlambat = max(
                 0,
                 (int) $tanggalBatas->diffInDays(
@@ -201,10 +254,10 @@ class PengembalianController extends Controller
                 )
             );
 
-            // Denda Rp1.000 per hari
+            // Denda Rp1.000 per hari.
             $denda = $terlambat * 1000;
 
-            // Mengembalikan stok alat
+            // Mengembalikan stok alat.
             foreach ($pinjam->detail as $detail) {
 
                 $alat = Alat::where('id_alat', $detail->id_alat)
@@ -220,7 +273,7 @@ class PengembalianController extends Controller
                 }
             }
 
-            // Memperbarui pengajuan menjadi diterima
+            // Menyimpan data pengembalian.
             $pengembalian->update([
                 'tanggal_kembali' => $data['tanggal_kembali'],
                 'kondisi_alat' => $data['kondisi_alat'],
@@ -228,6 +281,8 @@ class PengembalianController extends Controller
                 'diterima_oleh' => auth()->id(),
                 'status' => 'diterima',
             ]);
+
+            
 
             LogAktivitas::create([
                 'id_user' => auth()->id(),
@@ -237,7 +292,7 @@ class PengembalianController extends Controller
                     . number_format($denda, 0, ',', '.'),
             ]);
 
-            // Notifikasi kepada peminjam
+            // Notifikasi kepada peminjam.
             $peminjam = User::findOrFail($pinjam->id_user);
 
             $peminjam->notify(new TransaksiNotification(
