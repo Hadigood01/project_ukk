@@ -134,7 +134,7 @@ class PeminjamanController extends Controller
 
     public function setujui($id)
     {
-        DB::transaction(function () use ($id) {
+        $hasil = DB::transaction(function () use ($id) {
 
             $pinjam = Peminjaman::with('detail')
                 ->lockForUpdate()
@@ -146,21 +146,60 @@ class PeminjamanController extends Controller
                 ]);
             }
 
-            // Periksa dan kurangi stok alat
+            $adaPenyesuaian = false;
+            $adaAlatTersedia = false;
+            $detailDisetujui = [];
+
+            // Periksa setiap alat yang diajukan
             foreach ($pinjam->detail as $detail) {
 
                 $alat = Alat::where('id_alat', $detail->id_alat)
                     ->lockForUpdate()
                     ->firstOrFail();
 
-                if ($alat->stok < $detail->jumlah) {
-                    throw ValidationException::withMessages([
-                        'stok' => 'Stok ' . $alat->nama_alat
-                            . ' tidak mencukupi.',
-                    ]);
+                $jumlahDiminta = (int) $detail->jumlah;
+                $stokTersedia = (int) $alat->stok;
+
+                // Jika stok habis, hapus detail alat tersebut
+                if ($stokTersedia <= 0) {
+                    $detail->delete();
+
+                    $adaPenyesuaian = true;
+
+                    continue;
                 }
 
-                $alat->decrement('stok', $detail->jumlah);
+                // Sesuaikan jumlah dengan stok tersedia
+                $jumlahDisetujui = min(
+                    $jumlahDiminta,
+                    $stokTersedia
+                );
+
+                if ($jumlahDisetujui < $jumlahDiminta) {
+                    $adaPenyesuaian = true;
+                }
+
+                // Simpan jumlah yang disetujui
+                $detail->update([
+                    'jumlah' => $jumlahDisetujui,
+                ]);
+
+                // Kurangi stok sesuai jumlah yang disetujui
+                $alat->decrement('stok', $jumlahDisetujui);
+
+                $adaAlatTersedia = true;
+
+                $detailDisetujui[] = $alat->nama_alat
+                    . ' sebanyak '
+                    . $jumlahDisetujui
+                    . ' unit';
+            }
+
+            // Jika semua alat habis, batalkan persetujuan
+            if (!$adaAlatTersedia) {
+                throw ValidationException::withMessages([
+                    'stok' => 'Semua alat dalam pengajuan ini sedang habis.',
+                ]);
             }
 
             // Perbarui status peminjaman
@@ -169,6 +208,7 @@ class PeminjamanController extends Controller
                 'disetujui_oleh' => auth()->id(),
             ]);
 
+            // Catat aktivitas petugas
             LogAktivitas::create([
                 'id_user' => auth()->id(),
                 'aktivitas' => 'Menyetujui peminjaman ' . $id,
@@ -177,19 +217,43 @@ class PeminjamanController extends Controller
             // Notifikasi kepada peminjam
             $peminjam = User::findOrFail($pinjam->id_user);
 
+            if ($adaPenyesuaian) {
+
+                $pesan = 'Peminjaman ID '
+                    . $pinjam->id_pinjam
+                    . ' disetujui dengan penyesuaian jumlah berdasarkan stok tersedia. '
+                    . 'Jumlah disetujui: '
+                    . implode(', ', $detailDisetujui);
+
+            } else {
+
+                $pesan = 'Pengajuan peminjaman ID '
+                    . $pinjam->id_pinjam
+                    . ' telah disetujui seluruhnya.';
+            }
+
             $peminjam->notify(new TransaksiNotification(
                 'Peminjaman Disetujui',
-                'Pengajuan peminjaman dengan ID '
-                    . $pinjam->id_pinjam
-                    . ' telah disetujui petugas.',
+                $pesan,
                 'peminjaman_disetujui',
                 (int) $pinjam->id_pinjam
             ));
+
+            return [
+                'disesuaikan' => $adaPenyesuaian,
+            ];
         });
+
+        if ($hasil['disesuaikan']) {
+            return back()->with(
+                'success',
+                'Peminjaman disetujui. Jumlah alat telah disesuaikan dengan stok yang tersedia.'
+            );
+        }
 
         return back()->with(
             'success',
-            'Peminjaman berhasil disetujui.'
+            'Peminjaman berhasil disetujui seluruhnya.'
         );
     }
 
