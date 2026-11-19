@@ -42,10 +42,10 @@ class LaporanController extends Controller
             );
         }
 
-        // Tampilkan 20 data setiap halaman.
+        // Tampilkan 5 data setiap halaman.
         $peminjaman = $query
-            ->latest('create_at')
-            ->paginate(20)
+            ->orderByDesc('tnggl_pinjam')
+            ->paginate(5)
             ->withQueryString();
 
         return view('petugas.laporan.index', compact('peminjaman'));
@@ -86,7 +86,7 @@ class LaporanController extends Controller
         // Hitung total denda dari seluruh data hasil filter.
         $totalDenda = (clone $query)->sum('denda');
 
-        // Tampilkan 20 data setiap halaman.
+        // Bagian laporan pengembalian tetap 20 data setiap halaman.
         $pengembalian = $query
             ->latest('tanggal_kembali')
             ->paginate(20)
